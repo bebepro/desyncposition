@@ -1,0 +1,57 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local button = script.Parent
+
+local spoofingActive = false
+local spoofDistance = 1000 -- Distance to spoof the server position
+local originalPosition
+local humanoidRootPart
+
+-- Function to start spoofing
+local function startSpoofing()
+	while spoofingActive do
+		if humanoidRootPart then
+			-- Move the server position to a spoofed location
+			humanoidRootPart.CFrame = CFrame.new(originalPosition + Vector3.new(0, 0, spoofDistance)) -- Move far away
+		end
+		wait(0.1) -- Adjust this wait time to control how frequently the position updates
+	end
+end
+
+-- Function to toggle spoofing
+local function toggleSpoofing()
+	spoofingActive = not spoofingActive
+
+	if spoofingActive then
+		button.BackgroundColor3 = Color3.new(0.905882, 0.196078, 0.0196078) -- Orange when active
+		originalPosition = humanoidRootPart.Position -- Set original position when spoofing starts
+		startSpoofing()  -- Start the spoofing process
+	else
+		button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Black when inactive
+		if humanoidRootPart then
+			humanoidRootPart.CFrame = CFrame.new(originalPosition) -- Reset to original position
+		end
+	end
+end
+
+-- Function to set up humanoidRootPart and initialize spoofing for the new character
+local function setupCharacter(character)
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart") -- Get HumanoidRootPart
+	originalPosition = humanoidRootPart.Position -- Store the original position
+	if spoofingActive then
+		startSpoofing() -- Restart spoofing if it was active before respawn
+	end
+end
+
+-- Connect the button click event to toggle spoofing
+button.MouseButton1Click:Connect(toggleSpoofing)
+
+-- Listen for character respawn and setup spoofing
+player.CharacterAdded:Connect(setupCharacter)
+
+-- Initialize button state and handle existing character when the script starts
+button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Set the initial color to black
+
+if player.Character then
+	setupCharacter(player.Character) -- Setup for current character if it already exists
+end
